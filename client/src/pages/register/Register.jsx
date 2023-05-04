@@ -1,7 +1,7 @@
-import axios from "axios";
-import { useRef } from "react";
-import "./register.css";
-import { useHistory } from "react-router";
+import axios from 'axios';
+import { useRef } from 'react';
+import './register.css';
+import { useHistory } from 'react-router';
 
 export default function Register() {
   const username = useRef();
@@ -21,57 +21,64 @@ export default function Register() {
         password: password.current.value,
       };
       try {
-        await axios.post("/auth/register", user);
-        history.push("/login");
+        await axios.post('/auth/register', user);
+        history.push('/login');
       } catch (err) {
         console.log(err);
       }
     }
   };
 
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    history.push('/login');
+  };
+
   return (
-    <div className="login">
-      <div className="loginWrapper">
-        <div className="loginLeft">
-          <h3 className="loginLogo">Lamasocial</h3>
-          <span className="loginDesc">
+    <div className='login'>
+      <div className='loginWrapper'>
+        <div className='loginLeft'>
+          <h3 className='loginLogo'>Lamasocial</h3>
+          <span className='loginDesc'>
             Connect with friends and the world around you on Lamasocial.
           </span>
         </div>
-        <div className="loginRight">
-          <form className="loginBox" onSubmit={handleClick}>
+        <div className='loginRight'>
+          <form className='loginBox' onSubmit={handleClick}>
             <input
-              placeholder="Username"
+              placeholder='Username'
               required
               ref={username}
-              className="loginInput"
+              className='loginInput'
             />
             <input
-              placeholder="Email"
+              placeholder='Email'
               required
               ref={email}
-              className="loginInput"
-              type="email"
+              className='loginInput'
+              type='email'
             />
             <input
-              placeholder="Password"
+              placeholder='Password'
               required
               ref={password}
-              className="loginInput"
-              type="password"
-              minLength="6"
+              className='loginInput'
+              type='password'
+              minLength='6'
             />
             <input
-              placeholder="Password Again"
+              placeholder='Password Again'
               required
               ref={passwordAgain}
-              className="loginInput"
-              type="password"
+              className='loginInput'
+              type='password'
             />
-            <button className="loginButton" type="submit">
+            <button className='loginButton' type='submit'>
               Sign Up
             </button>
-            <button className="loginRegisterButton">Log into Account</button>
+            <button onClick={handleLogin} className='loginRegisterButton'>
+              Log into Account
+            </button>
           </form>
         </div>
       </div>

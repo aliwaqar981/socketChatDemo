@@ -8,9 +8,17 @@ import {
   Route,
   Redirect,
 } from 'react-router-dom';
-import { useContext } from 'react';
+import { useContext, useEffect } from 'react';
 import { AuthContext } from './context/AuthContext';
 import Messenger from './pages/messenger/Messenger';
+
+function LogOut() {
+  const { dispatch } = useContext(AuthContext);
+  useEffect(() => {
+    dispatch({ type: 'LOGOUT' });
+  }, []);
+  return <></>;
+}
 
 function App() {
   const { user } = useContext(AuthContext);
@@ -28,7 +36,11 @@ function App() {
           {!user ? <Redirect to='/' /> : <Messenger />}
         </Route>
         <Route path='/profile/:username'>
+          {!user ? <Redirect to='/login' /> : <Profile />}
           <Profile />
+        </Route>
+        <Route path='/logout'>
+          <LogOut />
         </Route>
       </Switch>
     </Router>

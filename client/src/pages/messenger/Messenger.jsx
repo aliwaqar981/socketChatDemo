@@ -1,5 +1,6 @@
 import React, { useContext, useState, useEffect, useRef } from 'react';
 import axios from 'axios';
+import { io } from 'socket.io-client';
 
 import './messenger.css';
 import Topbar from '../../components/topbar/Topbar';
@@ -13,9 +14,40 @@ export default function Messenger() {
   const [conversations, setConversations] = useState([]);
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
+  const [arrivalMessage, setArrivalMessage] = useState('');
+  const [onlineUsers, setOnlineUsers] = useState([]);
   const [currentChat, setCurrentChat] = useState(null);
 
   const scrollRef = useRef();
+  const socket = useRef();
+
+  useEffect(() => {
+    socket.current = io('ws://localhost:8900');
+
+    socket.current.on('getMessage', (data) => {
+      setArrivalMessage({
+        text: data.text,
+        sender: data.senderId,
+        createdAt: Date.now(),
+      });
+    });
+  }, []);
+
+  useEffect(() => {
+    if (
+      arrivalMessage &&
+      currentChat?.members.includes(arrivalMessage.sender)
+    ) {
+      setMessages((prev) => [...prev, arrivalMessage]);
+    }
+  }, [arrivalMessage, currentChat]);
+
+  useEffect(() => {
+    socket.current.emit('addUser', user._id);
+    socket.current.on('getUsers', (users) => {
+      setOnlineUsers(users);
+    });
+  }, [user]);
 
   useEffect(() => {
     const getConversations = async () => {
@@ -53,6 +85,17 @@ export default function Messenger() {
       conversationId: currentChat._id,
     };
 
+    // Finding user which is not current loggedIn user
+    const receiverId = currentChat.members.find(
+      (member) => member !== user._id
+    );
+
+    socket.current.emit('sendMessage', {
+      senderId: user._id,
+      receiverId,
+      text: newMessage,
+    });
+
     try {
       const response = await axios.post('/messages', message);
       setMessages([...messages, response.data]);
@@ -70,7 +113,10 @@ export default function Messenger() {
           <div className='chatMenuWrapper'>
             <input placeholder='Search for friends' className='chatMenuInput' />
             {conversations.map((conversation) => (
-              <div onClick={() => setCurrentChat(conversation)}>
+              <div
+                key={conversation._id}
+                onClick={() => setCurrentChat(conversation)}
+              >
                 <Conversation conversation={conversation} currentUser={user} />
               </div>
             ))}
@@ -81,8 +127,8 @@ export default function Messenger() {
             {currentChat ? (
               <>
                 <div className='chatBoxTop'>
-                  {messages.map((message) => (
-                    <div ref={scrollRef}>
+                  {messages.map((message, index) => (
+                    <div key={message._id + index} ref={scrollRef}>
                       <Message
                         message={message}
                         own={message.sender === user._id}
@@ -112,10 +158,11 @@ export default function Messenger() {
         </div>
         <div className='chatOnline'>
           <div className='chatOnlineWrapper'>
-            <ChatOnline />
-            <ChatOnline />
-            <ChatOnline />
-            <ChatOnline />
+            <ChatOnline
+              onlineUsers={[]}
+              currentId={user._id}
+              setCurrentChat={setCurrentChat}
+            />
           </div>
         </div>
       </div>
